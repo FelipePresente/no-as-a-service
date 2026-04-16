@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require("cors");
 const rateLimit = require('express-rate-limit');
 const fs = require('fs');
-const { type } = require('os');
 
 const app = express();
 app.use(cors());
@@ -28,16 +27,14 @@ app.use(limiter);
 app.get('/no', (req, res) => {
   const lang = req.query.lang
 
-  if (lang && typeof lang === "string") lang.toLowerCase()
-
+  // Empty reasons
   let reasons;
 
-  if (!lang || typeof lang !== "string" || !languages.includes(lang)) {
+  // Verifies if the language is avaible, returning it
+  if (lang && typeof lang === "string" && languages.includes(lang.toLowerCase())) {
+    reasons = JSON.parse(fs.readFileSync(`./reasons-${lang.toLowerCase()}.json`, 'utf-8'));
+  } else { // Returns english as default language
     reasons = JSON.parse(fs.readFileSync(`./reasons-en.json`, 'utf-8'));
-  }
-
-  if (languages.includes(lang)) {
-    reasons = JSON.parse(fs.readFileSync(`./reasons-${lang}.json`, 'utf-8'));
   }
 
   const reason = reasons[Math.floor(Math.random() * reasons.length)];
