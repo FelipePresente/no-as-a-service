@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require("cors");
 const rateLimit = require('express-rate-limit');
 const fs = require('fs');
+const { type } = require('os');
 
 const app = express();
 app.use(cors());
@@ -9,7 +10,7 @@ app.set('trust proxy', true);
 const PORT = process.env.PORT || 3000;
 
 // Load reasons from JSON
-const reasons = JSON.parse(fs.readFileSync('./reasons.json', 'utf-8'));
+const languages = ['en', 'pt-br']
 
 // Rate limiter: 120 requests per minute per IP
 const limiter = rateLimit({
@@ -25,6 +26,20 @@ app.use(limiter);
 
 // Random rejection reason endpoint
 app.get('/no', (req, res) => {
+  const lang = req.query.lang
+
+  if (lang && typeof lang === "string") lang.toLowerCase()
+
+  let reasons;
+
+  if (!lang || typeof lang !== "string" || !languages.includes(lang)) {
+    reasons = JSON.parse(fs.readFileSync(`./reasons-en.json`, 'utf-8'));
+  }
+
+  if (languages.includes(lang)) {
+    reasons = JSON.parse(fs.readFileSync(`./reasons-${lang}.json`, 'utf-8'));
+  }
+
   const reason = reasons[Math.floor(Math.random() * reasons.length)];
   res.json({ reason });
 });
